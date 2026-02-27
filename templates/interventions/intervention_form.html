@@ -1,0 +1,374 @@
+{% extends 'base/base.html' %}
+{% load crispy_forms_tags %}
+
+
+{% block title %}{{ title }} - Solar Maintenance{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">{{ title }}</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" id="interventionForm">
+                        {% csrf_token %}
+
+                        {% if request.user.is_superuser or not request.user.technicien %}
+                            <!-- Formulaire admin (complet) -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {{ form.client|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.technicien|as_crispy_field }}
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {{ form.date_intervention|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.type_intervention|as_crispy_field }}
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {{ form.statut|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6">
+                                    <!-- Champ fournisseur en lecture seule -->
+                                    <div class="form-group">
+                                        <label for="fournisseur_info">Fournisseur (auto)</label>
+                                        <input type="text" class="form-control" id="fournisseur_info"
+                                               value="{% if form.instance.fournisseur %}{{ form.instance.fournisseur.nom }}{% else %}Non spécifié{% endif %}"
+                                               readonly>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Champ prix conditionnel -->
+                            <div class="row" id="prix_container">
+                                <div class="col-md-6">
+                                    {% if form.instance.pk and form.instance.type_intervention == 'reparation' %}
+                                        <!-- Pour modification d'une réparation -->
+                                        {{ form.prix_intervention|as_crispy_field }}
+                                    {% else %}
+                                        <!-- Pour nouvelle intervention ou autre type -->
+                                        <div class="form-group">
+                                            <label for="prix_input">Prix de l'intervention (FCFA)</label>
+                                            <input type="number" class="form-control" id="prix_input"
+                                                   name="prix_input"
+                                                   placeholder="Prix en FCFA"
+                                                   {% if not form.instance.pk or form.instance.type_intervention != 'reparation' %}style="display:none;"{% endif %}>
+                                            <div id="prix_auto_display" class="form-control"
+                                                 style="background-color: #f8f9fa; {% if form.instance.pk and form.instance.type_intervention != 'reparation' %}display:block;{% else %}display:none;{% endif %}"
+                                                 readonly>
+                                                {% if form.instance.pk and form.instance.type_intervention != 'reparation' %}
+                                                    {{ form.instance.prix_intervention|floatformat:0 }} FCFA
+                                                {% else %}
+                                                    Le prix sera calculé automatiquement
+                                                {% endif %}
+                                            </div>
+                                            <small class="form-text text-muted" id="prix_help">
+                                                {% if form.instance.pk and form.instance.type_intervention == 'reparation' %}
+                                                    Prix à saisir manuellement pour les réparations
+                                                {% else %}
+                                                    Prix calculé automatiquement
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                        <!-- Champ caché pour stocker la valeur -->
+                                        <input type="hidden" id="id_prix_intervention" name="prix_intervention"
+                                               value="{% if form.instance.pk %}{{ form.instance.prix_intervention }}{% else %}0{% endif %}">
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                        {% else %}
+                            <!-- Formulaire technicien (restreint) - inchangé -->
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                En tant que technicien, certains champs sont en lecture seule.
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Client</label>
+                                        <input type="text" class="form-control"
+                                               value="{{ form.instance.client.nom }}"
+                                               readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Technicien</label>
+                                        <input type="text" class="form-control"
+                                               value="{{ request.user.technicien.nom }}"
+                                               readonly>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {{ form.date_intervention|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Type d'intervention</label>
+                                        <input type="text" class="form-control"
+                                               value="{{ form.instance.get_type_intervention_display }}"
+                                               readonly>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {{ form.statut|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Prix</label>
+                                        <input type="text" class="form-control"
+                                               value="{{ form.instance.prix_intervention|floatformat:0 }} FCFA"
+                                               readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Champs communs -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                {{ form.panne_constatee|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                {{ form.pieces_remplacees|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                {{ form.notes|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <div class="form-group text-right">
+                            <a href="{% url 'interventions:list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <i class="fas fa-save"></i> Enregistrer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Éléments du formulaire
+    const clientSelect = document.getElementById('id_client');
+    const fournisseurField = document.getElementById('fournisseur_info');
+    const typeInterventionSelect = document.getElementById('id_type_intervention');
+    const prixInput = document.getElementById('prix_input');
+    const prixAutoDisplay = document.getElementById('prix_auto_display');
+    const prixHidden = document.getElementById('id_prix_intervention');
+    const prixHelp = document.getElementById('prix_help');
+    const form = document.getElementById('interventionForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Vérifier si nous sommes en mode admin
+    const isAdminForm = {% if request.user.is_superuser or not request.user.technicien %}true{% else %}false{% endif %};
+
+    // Initialiser le prix pour les réparations existantes
+    function initPrixForReparation() {
+        if (typeInterventionSelect.value === 'reparation' && prixInput) {
+            prixInput.style.display = 'block';
+            prixAutoDisplay.style.display = 'none';
+            prixHelp.textContent = 'Prix à saisir manuellement pour les réparations';
+
+            // Si c'est une modification, pré-remplir avec la valeur existante
+            if (prixHidden.value && prixHidden.value !== '0') {
+                prixInput.value = prixHidden.value;
+            }
+        }
+    }
+
+    // Charger le fournisseur du client sélectionné
+    function updateFournisseur() {
+        if (!clientSelect || !fournisseurField) return;
+
+        const clientId = clientSelect.value;
+        if (clientId) {
+            fetch(`/interventions/api/client/${clientId}/fournisseur/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        fournisseurField.value = data.fournisseur_nom;
+                        updatePrix();
+                    } else {
+                        fournisseurField.value = 'Erreur de chargement';
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    fournisseurField.value = 'Erreur de chargement';
+                });
+        } else {
+            fournisseurField.value = '';
+            if (typeInterventionSelect.value !== 'reparation') {
+                prixAutoDisplay.textContent = 'Sélectionnez un client';
+            }
+        }
+    }
+
+    // Fonction pour calculer et afficher le prix
+    function updatePrix() {
+        if (!isAdminForm || !clientSelect || !typeInterventionSelect) return;
+
+        const clientId = clientSelect.value;
+        const typeIntervention = typeInterventionSelect.value;
+
+        if (!typeIntervention) {
+            if (prixInput) prixInput.style.display = 'none';
+            if (prixAutoDisplay) prixAutoDisplay.style.display = 'none';
+            return;
+        }
+
+        if (typeIntervention === 'reparation') {
+            // Mode saisie manuelle pour les réparations
+            if (prixInput) {
+                prixInput.style.display = 'block';
+                prixInput.required = true;
+                prixInput.placeholder = 'Saisir le prix en FCFA';
+            }
+            if (prixAutoDisplay) prixAutoDisplay.style.display = 'none';
+            if (prixHelp) prixHelp.textContent = 'Prix à saisir manuellement pour les réparations';
+
+            // Mettre à jour le champ caché avec la valeur saisie
+            if (prixInput && prixHidden) {
+                prixHidden.value = prixInput.value || '0';
+            }
+        } else {
+            // Mode calcul automatique
+            if (prixInput) {
+                prixInput.style.display = 'none';
+                prixInput.required = false;
+            }
+            if (prixAutoDisplay) prixAutoDisplay.style.display = 'block';
+            if (prixHelp) prixHelp.textContent = 'Prix calculé automatiquement';
+
+            if (!clientId) {
+                if (prixAutoDisplay) prixAutoDisplay.textContent = 'Sélectionnez un client pour calculer le prix';
+                if (prixHidden) prixHidden.value = '0';
+                return;
+            }
+
+            // Calculer le prix automatiquement via API
+            fetch(`/interventions/api/client/${clientId}/prix/?type=${typeIntervention}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const prix = data.prix;
+                        if (prixAutoDisplay) {
+                            prixAutoDisplay.textContent = prix.toLocaleString('fr-FR') + ' FCFA';
+                            prixAutoDisplay.style.color = '#28a745';
+                        }
+                        if (prixHidden) prixHidden.value = prix;
+                        if (prixHelp) prixHelp.textContent = `Prix calculé automatiquement pour ${data.kva}KVA (${typeIntervention})`;
+                    } else {
+                        if (prixAutoDisplay) {
+                            prixAutoDisplay.textContent = 'Erreur de calcul';
+                            prixAutoDisplay.style.color = '#dc3545';
+                        }
+                        if (prixHidden) prixHidden.value = '0';
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    if (prixAutoDisplay) {
+                        prixAutoDisplay.textContent = 'Erreur de calcul';
+                        prixAutoDisplay.style.color = '#dc3545';
+                    }
+                    if (prixHidden) prixHidden.value = '0';
+                });
+        }
+    }
+
+    // Gérer la saisie manuelle pour les réparations
+    function handlePrixInput() {
+        if (typeInterventionSelect.value === 'reparation' && prixInput && prixHidden) {
+            const prix = parseInt(prixInput.value) || 0;
+            prixHidden.value = prix;
+        }
+    }
+
+    // Événements
+    if (clientSelect) {
+        clientSelect.addEventListener('change', updateFournisseur);
+    }
+    if (typeInterventionSelect) {
+        typeInterventionSelect.addEventListener('change', function() {
+            updatePrix();
+            initPrixForReparation();
+        });
+    }
+    if (prixInput) {
+        prixInput.addEventListener('input', handlePrixInput);
+    }
+
+    // Gérer la soumission du formulaire
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Valider le prix pour les réparations
+            if (typeInterventionSelect && typeInterventionSelect.value === 'reparation') {
+                const prix = parseInt(prixInput ? prixInput.value : 0) || 0;
+                if (prix <= 0) {
+                    e.preventDefault();
+                    alert('Veuillez saisir un prix valide pour la réparation.');
+                    if (prixInput) prixInput.focus();
+                    return;
+                }
+                if (prixHidden) prixHidden.value = prix;
+            }
+
+            // Désactiver le bouton pour éviter les doubles clics
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
+            }
+        });
+    }
+
+    // Initialiser au chargement
+    if (isAdminForm) {
+        // Initialiser pour les modifications existantes
+        initPrixForReparation();
+
+        // Mettre à jour le prix si ce n'est pas une réparation
+        if (typeInterventionSelect && typeInterventionSelect.value !== 'reparation') {
+            updatePrix();
+        }
+
+        // Charger le fournisseur si un client est déjà sélectionné
+        if (clientSelect && clientSelect.value) {
+            updateFournisseur();
+        }
+    }
+});
+</script>
+{% endblock %}

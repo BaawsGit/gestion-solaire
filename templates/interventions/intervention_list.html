@@ -1,0 +1,181 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Gestion des Interventions - Solar Maintenance{% endblock %}
+{% block page_title %}Gestion des Interventions{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Filtres et Recherche -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Filtres et Recherche</h6>
+            {% if not is_technicien %}
+            <a href="{% url 'interventions:create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nouvelle Intervention
+            </a>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <form method="get" class="form-inline">
+                <div class="form-group mr-2 mb-2">
+                    <input type="text" name="search" class="form-control"
+                           placeholder="Rechercher (client, technicien, fournisseur)"
+                           value="{{ search_query }}">
+                </div>
+                <div class="form-group mr-2 mb-2">
+                    <select name="type" class="form-control">
+                        <option value="">Tous les types</option>
+                        {% for type, label in type_choices %}
+                        <option value="{{ type }}" {% if type_filter == type %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group mr-2 mb-2">
+                    <select name="statut" class="form-control">
+                        <option value="">Tous les statuts</option>
+                        {% for statut, label in statut_choices %}
+                        <option value="{{ statut }}" {% if statut_filter == statut %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary mr-2 mb-2">
+                    <i class="fas fa-filter"></i> Filtrer
+                </button>
+                <a href="{% url 'interventions:list' %}" class="btn btn-secondary mb-2">
+                    <i class="fas fa-redo"></i> Réinitialiser
+                </a>
+            </form>
+        </div>
+    </div>
+
+    <!-- Liste des Interventions -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Liste des Interventions</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Client</th>
+                            <th>Technicien</th>
+                            <th>Fournisseur</th>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Statut</th>
+                            <th>Prix</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for intervention in interventions %}
+                        <tr>
+                            <td>{{ intervention.id }}</td>
+                            <td>{{ intervention.client.nom }}</td>
+                            <td>
+                                {% if intervention.technicien %}
+                                    {{ intervention.technicien.nom }}
+                                {% else %}
+                                    <span class="text-muted">Non assigné</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if intervention.fournisseur %}
+                                    {{ intervention.fournisseur.nom }}
+                                {% else %}
+                                    <span class="text-muted">Non spécifié</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ intervention.date_intervention|date:"d/m/Y" }}</td>
+                            <td>
+                                <!-- Remplacer "badge-info" par "bg-info" -->
+                                <span class="badge bg-info text-dark">
+                                    {{ intervention.get_type_intervention_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if intervention.statut == 'terminee' %}
+                                    <span class="badge bg-success">Terminée</span>
+                                {% elif intervention.statut == 'en_cours' %}
+                                    <!-- "badge-warning" devient "bg-warning text-dark" pour meilleur contraste -->
+                                    <span class="badge bg-warning text-dark">En cours</span>
+                                {% elif intervention.statut == 'prevue' %}
+                                    <span class="badge bg-secondary">Prévue</span>
+                                {% elif intervention.statut == 'annulee' %}
+                                    <span class="badge bg-danger">Annulée</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ intervention.prix_intervention|floatformat:0 }} FCFA</td>
+                            <td>
+                                <a href="{% url 'interventions:detail' intervention.pk %}"
+                                   class="btn btn-info btn-sm" title="Voir">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {% if not is_technicien or intervention.technicien == request.user.technicien %}
+                                <a href="{% url 'interventions:update' intervention.pk %}"
+                                   class="btn btn-warning btn-sm" title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% endif %}
+                                {% if not is_technicien %}
+                                <a href="{% url 'interventions:delete' intervention.pk %}"
+                                   class="btn btn-danger btn-sm" title="Supprimer">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center">Aucune intervention trouvée.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if interventions.has_other_pages %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if interventions.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}">Premier</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ interventions.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}">Précédent</a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in interventions.paginator.page_range %}
+                        {% if interventions.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > interventions.number|add:'-3' and num < interventions.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if interventions.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ interventions.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}">Suivant</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ interventions.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}">Dernier</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

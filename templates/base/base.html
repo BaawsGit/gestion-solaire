@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Global Solar Energy - {% block title %}Accueil{% endblock %}</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Dans le HEAD de base.html, après les autres CSS -->
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+
+    <!-- Plotly.js pour les graphiques 3D -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <!-- Chart.js pour les graphiques 2D -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .sidebar {
+            background-color: var(--primary-color);
+            min-height: 100vh;
+            color: white;
+            padding: 0;
+            box-shadow: 3px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .sidebar-brand {
+            padding: 20px;
+            text-align: center;
+            background-color: rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 12px 20px;
+            border-left: 4px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .nav-link:hover {
+            color: white;
+            background-color: rgba(255,255,255,0.1);
+            border-left-color: var(--secondary-color);
+        }
+
+        .nav-link.active {
+            color: white;
+            background-color: rgba(255,255,255,0.1);
+            border-left-color: var(--secondary-color);
+        }
+
+        .nav-link i {
+            width: 25px;
+            text-align: center;
+        }
+
+        .content-header {
+            background-color: white;
+            padding: 20px;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 0 15px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            border-radius: 10px;
+            transition: transform 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid #eee;
+            font-weight: 600;
+            padding: 15px 20px;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .stat-card i {
+            font-size: 40px;
+            margin-bottom: 10px;
+            color: var(--secondary-color);
+        }
+
+        .stat-card .number {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .stat-card .label {
+            color: #6c757d;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 col-lg-2 d-md-block sidebar collapse">
+                <div class="sidebar-sticky">
+                    <div class="sidebar-brand">
+                        <h4><i class="fas fa-solar-panel"></i> Global Solar Energy</h4>
+                        <small>Gestion des interventions</small>
+                    </div>
+
+                    <div class="sidebar-menu">
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
+                                    <i class="fas fa-tachometer-alt"></i> Accueil
+                                </a>
+                            </li>
+
+                            <!-- Dans base.html, ajoutez ceci dans la sidebar -->
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.resolver_match.url_name == 'calendar' %}active{% endif %}"
+                                   href="{% url 'interventions:calendar' %}">
+                                    <i class="fas fa-calendar-alt"></i> Calendrier
+                                </a>
+                            </li>
+
+                            <!-- Sections visibles uniquement par l'admin -->
+                            {% if user.is_authenticated and user.is_superuser %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'client' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'client_list' %}">
+                                    <i class="fas fa-users"></i> Clients
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'technicien' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'technicien_list' %}">
+                                    <i class="fas fa-user-cog"></i> Techniciens
+                                </a>
+                            </li>
+                            {% endif %}
+
+                            <!-- Interventions - visible par tous -->
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'intervention' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'interventions:list' %}">
+                                    <i class="fas fa-tools"></i> Interventions
+                                </a>
+                            </li>
+                        <!-- Dans base.html, dans la sidebar, ajoutez ceci après la section Interventions : -->
+                            {% if user.is_authenticated and user.is_superuser %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'reports:report_list' %}">
+                                    <i class="fas fa-brain"></i>
+                                    <span>Rapports IA</span>
+                                </a>
+                            </li>
+                            <!-- Menu déroulant Statistiques -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="statsDropdown" role="button"
+                                   data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-chart-bar"></i> Statistiques
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="statsDropdown">
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'stats:dashboard' %}">
+                                            <i class="fas fa-tachometer-alt"></i> Tableau de bord stats
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'stats:export' %}">
+                                            <i class="fas fa-download"></i> Exporter les données
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            {% endif %}
+
+                            <!-- Administration - visible uniquement par l'admin -->
+                            {% if user.is_authenticated and user.is_superuser %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="/admin" target="_blank">
+                                    <i class="fas fa-user-shield"></i> Administration
+                                </a>
+                            </li>
+                            {% endif %}
+
+                            <li class="nav-item">
+                                <a class="nav-link text-danger" href="{% url 'logout' %}">
+                                    <i class="fas fa-sign-out-alt"></i> Déconnexion
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main content -->
+            <main class="col-md-10 col-lg-10 ml-sm-auto px-md-4">
+                <div class="content-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2>{% block page_title %}Tableau de Bord{% endblock %}</h2>
+                        <div class="user-info">
+                            <span class="text-muted">
+                                <i class="fas fa-user-circle"></i>
+                                {% if user.is_authenticated %}
+                                    Admin: {{ user.username }}
+                                {% elif request.session.is_technicien %}
+                                    Technicien: {{ request.session.technicien_nom }}
+                                {% else %}
+                                    Invité
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="container-fluid">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% block content %}
+                    <!-- Le contenu spécifique à chaque page ira ici -->
+                    {% endblock %}
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- jQuery (optionnel, mais utile pour certains plugins) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    {% block extra_js %}{% endblock %}
+
+    <!-- Dans le BODY de base.html, avant la fermeture </body> -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/fr.js'></script>
+</body>
+</html>

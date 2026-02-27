@@ -1,0 +1,285 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Tableau de Bord Administrateur - Global Solar Energy{% endblock %}
+
+{% block page_title %}Tableau de Bord Administrateur{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-tachometer-alt me-2"></i>Bienvenue Administrateur
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Première ligne : Statistiques générales -->
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-users fa-3x mb-3" style="color: #3498db;"></i>
+                                <h3 class="number">{{ total_clients }}</h3>
+                                <p class="label">Clients</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-user-cog fa-3x mb-3" style="color: #2ecc71;"></i>
+                                <h3 class="number">{{ total_techniciens }}</h3>
+                                <p class="label">Techniciens</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-tools fa-3x mb-3" style="color: #e74c3c;"></i>
+                                <h3 class="number">{{ total_interventions }}</h3>
+                                <p class="label">Interventions</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-chart-line fa-3x mb-3" style="color: #f39c12;"></i>
+                                <h3 class="number">{{ revenus_totaux|floatformat:0 }} FCFA</h3>
+                                <!-- NOUVEAU : Total toutes interventions -->
+                                <p class="label">Revenus Totaux</p>
+                                <p class="small text-muted mb-0" style="font-size: 0.8rem;">
+                                    Total toutes interventions : {{ total_toutes_interventions|floatformat:0 }} FCFA
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deuxième ligne : Statistiques des interventions -->
+                <div class="row mt-4">
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-clock fa-3x mb-3" style="color: #f39c12;"></i>
+                                <h3 class="number">{{ interventions_en_cours }}</h3>
+                                <p class="label">En Cours</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-check-circle fa-3x mb-3" style="color: #2ecc71;"></i>
+                                <h3 class="number">{{ interventions_terminees }}</h3>
+                                <p class="label">Terminées</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-times-circle fa-3x mb-3" style="color: #e74c3c;"></i>
+                                <h3 class="number">{{ interventions_annulees }}</h3>
+                                <p class="label">Annulées</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-calendar-check fa-3x mb-3" style="color: #9b59b6;"></i>
+                                <h3 class="number">{{ interventions_prevues }}</h3>
+                                <p class="label">Prévues</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prochaines interventions (toutes) -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6>
+                                    <i class="fas fa-calendar-alt me-2"></i>Prochaines interventions
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                {% if prochaines_interventions %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Client</th>
+                                                <th>Technicien</th>
+                                                <th>Type</th>
+                                                <th>Statut</th>
+                                                <th>Prix</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for intervention in prochaines_interventions %}
+                                            <tr>
+                                                <td>
+                                                    <span class="badge bg-primary">
+                                                        {{ intervention.date_intervention|date:"d/m/Y" }}
+                                                        <!-- NOUVEAU : Badge "en retard" -->
+                                                        {% if intervention.date_intervention|date:"Y-m-d" < aujourdhui|date:"Y-m-d" %}
+                                                        <br>
+                                                        <span class="badge bg-danger mt-1">En retard</span>
+                                                        {% endif %}
+                                                    </span>
+                                                </td>
+                                                <td>{{ intervention.client.nom }}</td>
+                                                <td>
+                                                    {% if intervention.technicien %}
+                                                        {{ intervention.technicien.nom }}
+                                                    {% else %}
+                                                        <span class="text-muted">Non assigné</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-info">
+                                                        {{ intervention.get_type_intervention_display }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    {% if intervention.statut == 'terminee' %}
+                                                        <span class="badge bg-success">Terminée</span>
+                                                    {% elif intervention.statut == 'en_cours' %}
+                                                        <span class="badge bg-warning">En cours</span>
+                                                    {% elif intervention.statut == 'prevue' %}
+                                                        <span class="badge bg-secondary">Prévue</span>
+                                                    {% else %}
+                                                        <span class="badge bg-danger">Annulée</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ intervention.prix_intervention|floatformat:0 }} FCFA</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% else %}
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i>
+                                    Aucune intervention prévue dans les prochains jours.
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interventions récentes -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6>Interventions récentes</h6>
+                            </div>
+                            <div class="card-body">
+                                {% if interventions_recentes %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Date</th>
+                                                <th>Client</th>
+                                                <th>Technicien</th>
+                                                <th>Type</th>
+                                                <th>Statut</th>
+                                                <th>Prix</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for intervention in interventions_recentes %}
+                                            <tr>
+                                                <td>#{{ intervention.id }}</td>
+                                                <td>{{ intervention.date_intervention|date:"d/m/Y" }}</td>
+                                                <td>{{ intervention.client.nom }}</td>
+                                                <td>
+                                                    {% if intervention.technicien %}
+                                                        {{ intervention.technicien.nom }}
+                                                    {% else %}
+                                                        <span class="text-muted">Non assigné</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-info">
+                                                        {{ intervention.get_type_intervention_display }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    {% if intervention.statut == 'terminee' %}
+                                                        <span class="badge bg-success">Terminée</span>
+                                                    {% elif intervention.statut == 'en_cours' %}
+                                                        <span class="badge bg-warning">En cours</span>
+                                                    {% elif intervention.statut == 'prevue' %}
+                                                        <span class="badge bg-secondary">Prévue</span>
+                                                    {% else %}
+                                                        <span class="badge bg-danger">Annulée</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ intervention.prix_intervention|floatformat:0 }} FCFA</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% else %}
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i> Aucune intervention enregistrée.
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions rapides pour admin -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-bolt me-2"></i>Actions rapides
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3 mb-3">
+                                        <a href="{% url 'client_create' %}" class="btn btn-primary w-100">
+                                            <i class="fas fa-user-plus me-2"></i>Ajouter Client
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <a href="{% url 'technicien_create' %}" class="btn btn-success w-100">
+                                            <i class="fas fa-user-cog me-2"></i>Ajouter Technicien
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <a href="{% url 'interventions:create' %}" class="btn btn-warning w-100">
+                                            <i class="fas fa-plus me-2"></i>Nouvelle Intervention
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <a href="/admin" target="_blank" class="btn btn-info w-100">
+                                            <i class="fas fa-cogs me-2"></i>Administration
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

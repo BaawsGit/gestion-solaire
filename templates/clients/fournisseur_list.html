@@ -1,0 +1,201 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Gestion des Fournisseurs - Solar Maintenance{% endblock %}
+{% block page_title %}Gestion des Fournisseurs{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-truck me-2"></i>Fournisseurs
+                        <span class="badge bg-secondary ms-2">{{ fournisseurs.count }}</span>
+                    </h5>
+                    <div>
+                        <a href="{% url 'client_list' %}" class="btn btn-outline-secondary me-2">
+                            <i class="fas fa-arrow-left me-2"></i>Retour Clients
+                        </a>
+                        <button type= "button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ajouterFournisseur">
+                            <i class="fas fa-plus me-2"></i>Ajouter Fournisseur
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if fournisseurs %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Téléphone</th>
+                                <th>Email</th>
+                                <th>Clients</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for fournisseur in fournisseurs %}
+                            <tr>
+                                <td>
+                                    <strong>{{ fournisseur.nom }}</strong>
+                                </td>
+                                <td>
+                                    {% if fournisseur.telephone %}
+                                    <div><i class="fas fa-phone"></i> {{ fournisseur.telephone }}</div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if fournisseur.email %}
+                                    <div><i class="fas fa-envelope"></i> {{ fournisseur.email }}</div>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    <span class="badge bg-primary">{{ fournisseur.clients.count }}</span>
+                                    {% if fournisseur.clients.count > 0 %}
+                                    <br>
+                                    <small class="text-muted">
+                                        {% for client in fournisseur.clients.all|slice:":2" %}
+                                            {{ client.nom }}{% if not forloop.last %}, {% endif %}
+                                        {% endfor %}
+                                        {% if fournisseur.clients.count > 2 %}...{% endif %}
+                                    </small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'fournisseur_detail' fournisseur.id %}"
+                                           class="btn btn-sm btn-outline-info"
+                                           title="Voir">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'fournisseur_update' fournisseur.id %}"
+                                           class="btn btn-sm btn-outline-warning"
+                                           title="Modifier">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <!-- NOUVEAU BOUTON SUPPRIMER -->
+                                        <a href="{% url 'fournisseur_delete' fournisseur.id %}"
+                                           class="btn btn-sm btn-outline-danger"
+                                           title="Supprimer">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Aucun fournisseur enregistré.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ajouter Fournisseur -->
+<div class="modal fade" id="ajouterFournisseur" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ajouter un Fournisseur</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="fournisseurFormModal">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nom *</label>
+                        <input type="text" class="form-control" name="nom" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="email">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Téléphone</label>
+                        <input type="text" class="form-control" name="telephone">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Adresse</label>
+                        <textarea class="form-control" name="adresse" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="saveFournisseurModal">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+<!-- Ajouter ce script à la fin du bloc content -->
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const saveFournisseurModalBtn = document.getElementById('saveFournisseurModal');
+    const fournisseurFormModal = document.getElementById('fournisseurFormModal');
+
+    if (saveFournisseurModalBtn && fournisseurFormModal) {
+        saveFournisseurModalBtn.addEventListener('click', function(event) {
+            event.preventDefault();
+
+            // Récupérer les données du formulaire
+            const formData = {
+                nom: fournisseurFormModal.querySelector('input[name="nom"]').value,
+                email: fournisseurFormModal.querySelector('input[name="email"]').value,
+                telephone: fournisseurFormModal.querySelector('input[name="telephone"]').value,
+                adresse: fournisseurFormModal.querySelector('textarea[name="adresse"]').value,
+            };
+
+            // Validation basique
+            if (!formData.nom.trim()) {
+                alert('Le nom du fournisseur est obligatoire.');
+                return;
+            }
+
+            // Envoyer les données en AJAX
+            fetch("{% url 'ajax_create_fournisseur' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Fermer le modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('ajouterFournisseur'));
+                    modal.hide();
+
+                    // Réinitialiser le formulaire
+                    fournisseurFormModal.reset();
+
+                    // Recharger la page pour afficher le nouveau fournisseur
+                    location.reload();
+                } else {
+                    alert('Erreur: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Une erreur est survenue lors de la création du fournisseur.');
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

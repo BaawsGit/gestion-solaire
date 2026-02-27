@@ -1,0 +1,187 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Mon Espace Technicien - Global Solar Energy{% endblock %}
+
+{% block page_title %}Mon Espace Technicien{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user-cog me-2"></i>Bienvenue, {{ technicien.nom }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Statistiques du technicien -->
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-tools fa-3x mb-3" style="color: #3498db;"></i>
+                                <h3 class="number">{{ interventions_total }}</h3>
+                                <p class="label">Total</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-clock fa-3x mb-3" style="color: #f39c12;"></i>
+                                <h3 class="number">{{ interventions_en_cours }}</h3>
+                                <p class="label">En cours</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-check-circle fa-3x mb-3" style="color: #2ecc71;"></i>
+                                <h3 class="number">{{ interventions_terminees }}</h3>
+                                <p class="label">Terminées</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-times-circle fa-3x mb-3" style="color: #e74c3c;"></i>
+                                <h3 class="number">{{ interventions_annulees }}</h3>
+                                <p class="label">Annulées</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deuxième ligne : Prévision et retard -->
+                <div class="row mt-3">
+                    <div class="col-md-3 offset-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-calendar-check fa-3x mb-3" style="color: #9b59b6;"></i>
+                                <h3 class="number">{{ interventions_prevues }}</h3>
+                                <p class="label">Prévues</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-exclamation-triangle fa-3x mb-3" style="color: #e74c3c;"></i>
+                                <h3 class="number">{{ interventions_en_retard|length }}</h3>
+                                <p class="label">En retard</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alertes et notifications -->
+                {% if interventions_en_retard %}
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="alert alert-warning">
+                            <h6><i class="fas fa-exclamation-triangle me-2"></i>Interventions en retard !</h6>
+                            <p class="mb-1">Vous avez {{ interventions_en_retard|length }} intervention(s) dont la date est dépassée :</p>
+                            <ul class="mb-0">
+                                {% for intervention in interventions_en_retard %}
+                                <li>
+                                    <strong>#{{ intervention.id }}</strong> - {{ intervention.client.nom }}
+                                    ({{ intervention.date_intervention|date:"d/m/Y" }})
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Mes prochaines interventions -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-calendar-alt me-2"></i>Mes prochaines interventions
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                {% if prochaines_interventions %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Client</th>
+                                                <th>Type</th>
+                                                <th>Statut</th>
+                                                <th>Panne constatée</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for intervention in prochaines_interventions %}
+                                            <tr>
+                                                <td>
+                                                    <span class="badge bg-primary">
+                                                        {{ intervention.date_intervention|date:"d/m/Y" }}
+                                                    </span>
+                                                </td>
+                                                <td>{{ intervention.client.nom }}</td>
+                                                <td>
+                                                    <span class="badge bg-info">
+                                                        {{ intervention.get_type_intervention_display }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    {% if intervention.statut == 'prevue' %}
+                                                        <span class="badge bg-secondary">Prévue</span>
+                                                    {% elif intervention.statut == 'en_cours' %}
+                                                        <span class="badge bg-warning">En cours</span>
+                                                    {% elif intervention.statut == 'terminee' %}
+                                                        <span class="badge bg-success">Terminée</span>
+                                                    {% else %}
+                                                        <span class="badge bg-danger">{{ intervention.get_statut_display }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if intervention.panne_constatee %}
+                                                        {{ intervention.panne_constatee|truncatechars:50 }}
+                                                    {% else %}
+                                                        <span class="text-muted">Non spécifiée</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% else %}
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i>
+                                    Aucune intervention programmée dans les 30 prochains jours.
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Instructions -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-lightbulb me-2"></i>Instructions</h6>
+                            <ul class="mb-0">
+                                <li>Mettez à jour le statut des interventions après chaque visite</li>
+                                <li>Notez bien les pièces remplacées et les pannes constatées</li>
+                                <li>Consultez régulièrement les interventions en retard</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

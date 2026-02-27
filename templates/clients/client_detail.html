@@ -1,0 +1,213 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ page_title }} - Solar Maintenance{% endblock %}
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <!-- Carte info client -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user-circle me-2"></i>Informations Client
+                </h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Nom</dt>
+                    <dd class="col-sm-8"><strong>{{ client.nom }}</strong></dd>
+
+                    <dt class="col-sm-4">Téléphone</dt>
+                    <dd class="col-sm-8">{{ client.telephone }}</dd>
+
+                    <dt class="col-sm-4">Email</dt>
+                    <dd class="col-sm-8">{{ client.email }}</dd>
+
+                    <dt class="col-sm-4">Adresse</dt>
+                    <dd class="col-sm-8">{{ client.adresse|linebreaks }}</dd>
+
+                    <dt class="col-sm-4">Installation</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge bg-info">{{ client.type_installation }}</span>
+                        <br>
+                        <small>Le {{ client.date_installation|date:"d/m/Y" }}</small>
+                    </dd>
+
+                    <dt class="col-sm-4">Fournisseur</dt>
+                    <dd class="col-sm-8">
+                        {% if client.fournisseur %}
+                        <span class="badge bg-secondary">{{ client.fournisseur.nom }}</span>
+                        {% else %}
+                        <span class="text-muted">Non spécifié</span>
+                        {% endif %}
+                    </dd>
+                </dl>
+
+                {% if client.notes %}
+                <div class="alert alert-light">
+                    <h6><i class="fas fa-sticky-note"></i> Notes</h6>
+                    {{ client.notes|linebreaks }}
+                </div>
+                {% endif %}
+
+                <div class="d-grid gap-2">
+                    <a href="{% url 'client_update' client.id %}" class="btn btn-warning">
+                        <i class="fas fa-edit me-2"></i>Modifier
+                    </a>
+                    <a href="{% url 'client_delete' client.id %}" class="btn btn-danger">
+                       <i class="fas fa-trash me-2"></i>Supprimer
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nouvelle section : Matériels fournis par le fournisseur -->
+        <!-- Nouvelle section : Matériels fournis par le fournisseur -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-boxes me-2"></i>Matériels fournis
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if client.materiels_fournis %}
+                    <p>{{ client.materiels_fournis|linebreaks }}</p>
+                    {% if client.fournisseur %}
+                        <small class="text-muted">
+                            Fournisseur: <a href="{% url 'fournisseur_detail' client.fournisseur.id %}">{{ client.fournisseur.nom }}</a>
+                        </small>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Aucun matériel spécifié pour ce client.
+                        {% if client.fournisseur %}
+                            <br><small>Fournisseur: <a href="{% url 'fournisseur_detail' client.fournisseur.id %}">{{ client.fournisseur.nom }}</a></small>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <!-- Historique des interventions -->
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-history me-2"></i>Historique des Interventions
+                        <span class="badge bg-primary ms-2">{{ total_interventions }}</span>
+                    </h5>
+                    <a href="{% url 'interventions:create' %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-plus me-1"></i>Nouvelle Intervention
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if interventions %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Statut</th>
+                                <th>Technicien</th>
+                                <th>Prix</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for intervention in interventions %}
+                            <tr>
+                                <td>{{ intervention.date_intervention|date:"d/m/Y" }}</td>
+                                <td>
+                                    <span class="badge bg-info">{{ intervention.get_type_intervention_display }}</span>
+                                </td>
+                                <td>
+                                    {% if intervention.statut == 'terminee' %}
+                                        <span class="badge bg-success">Terminée</span>
+                                    {% elif intervention.statut == 'en_cours' %}
+                                        <span class="badge bg-warning">En cours</span>
+                                    {% elif intervention.statut == 'prevue' %}
+                                        <span class="badge bg-secondary">Prévue</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Annulée</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if intervention.technicien %}
+                                        {{ intervention.technicien.nom }}
+                                    {% else %}
+                                        <span class="text-muted">Non assigné</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ intervention.prix_intervention|floatformat:0 }} FCFA</td>
+                                <td>
+                                    <a href="{% url 'interventions:detail' intervention.id %}"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Aucune intervention enregistrée pour ce client.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Carte KVA détecté -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-calculator me-2"></i>Calculs automatiques
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="alert alert-light">
+                            <h6><i class="fas fa-bolt"></i> KVA détecté</h6>
+                            <p class="mb-0">
+                                {% with client.extraire_kva as kva %}
+                                    {% if kva %}
+                                        <span class="display-6 text-success">{{ kva }} KVA</span>
+                                    {% else %}
+                                        <span class="text-danger">Aucun KVA détecté</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="alert alert-light">
+                            <h6><i class="fas fa-money-bill-wave"></i> Prix d'intervention</h6>
+                            <p class="mb-0">
+                                <span class="display-6 text-primary">{{ client.get_prix_intervention|floatformat:0 }} FCFA</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bouton retour -->
+<div class="row mt-4">
+    <div class="col-12">
+        <a href="{% url 'client_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Retour à la liste des clients
+        </a>
+    </div>
+</div>
+{% endblock %}

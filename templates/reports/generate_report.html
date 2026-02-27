@@ -1,0 +1,138 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">{{ page_title }}</h1>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Sélection du mois à analyser</h6>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'reports:generate_report' %}">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="month">Mois</label>
+                                    <select class="form-control" id="month" name="month" required>
+                                        <option value="">Sélectionnez un mois</option>
+                                        {% for num, name in months %}
+                                        <option value="{{ num }}" {% if num == current_month %}selected{% endif %}>
+                                            {{ name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="year">Année</label>
+                                    <select class="form-control" id="year" name="year" required>
+                                        <option value="">Sélectionnez une année</option>
+                                        {% for year in years %}
+                                        <option value="{{ year }}" {% if year == current_year %}selected{% endif %}>
+                                            {{ year }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle"></i> Information</h6>
+                            <p class="mb-0">
+                                Cette analyse va:
+                                <ul>
+                                    <li>Analyser toutes les interventions du mois sélectionné</li>
+                                    <li>Identifier les tendances et patterns</li>
+                                    <li>Générer des recommandations stratégiques</li>
+                                    <li>Fournir des insights prédictifs</li>
+                                </ul>
+                                <strong>Durée estimée:</strong> 1-2 minutes
+                            </p>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-icon-split">
+                            <span class="icon text-white-50">
+                                <i class="fas fa-brain"></i>
+                            </span>
+                            <span class="text">Générer le rapport IA</span>
+                        </button>
+                        <a href="{% url 'reports:report_list' %}" class="btn btn-secondary">Annuler</a>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Exemple de rapport généré</h6>
+                </div>
+                <div class="card-body">
+                    <div class="border-left-primary pl-3">
+                        <h6 class="text-primary">RÉSUMÉ EXÉCUTIF</h6>
+                        <p>Le mois de [Mois] a montré une augmentation de 15% des interventions avec un taux de réussite de 92%...</p>
+
+                        <h6 class="text-primary mt-3">RECOMMANDATIONS CLÉS</h6>
+                        <ul>
+                            <li>Stocker davantage de batteries 12V qui représentent 40% des remplacements</li>
+                            <li>Former les techniciens sur les pannes fréquentes d'onduleurs</li>
+                            <li>Planifier une maintenance préventive pour les installations de plus de 2 ans</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Configuration Ollama</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>Modèle utilisé:</strong> gemma3:4b</p>
+                    <p><strong>Endpoint:</strong> http://localhost:11434</p>
+
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle"></i> Pré-requis</h6>
+                        <p class="mb-0 small">
+                            1. Installer Ollama: <code>curl -fsSL https://ollama.com/install.sh | sh</code><br>
+                            2. Télécharger un modèle: <code>ollama pull gemma3:4b</code><br>
+                            3. Lancer le serveur: <code>ollama serve</code>
+                        </p>
+                        <div class="mt-2">
+                            <a href="{% url 'reports:test_connection' %}" class="btn btn-sm btn-info">
+                                <i class="fas fa-plug"></i> Tester la connexion
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dans la sidebar, modifiez : -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Données analysées</h6>
+                </div>
+                <div class="card-body">
+                    <p>L'IA analysera:</p>
+                    <ul class="small">
+                        <li>Toutes les interventions du mois</li>
+                        <li>Types d'intervention et durée</li>
+                        <li>Pannes constatées et pièces remplacées</li>
+                        <li>Performance par technicien</li>
+                        <li>Tendances des pannes récurrentes</li>
+                        <li><strong>Indice de performance interne</strong> (basé sur le taux de réussite)</li>
+                        <li>Indicateurs de coût et rentabilité</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

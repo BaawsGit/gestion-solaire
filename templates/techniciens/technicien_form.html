@@ -1,0 +1,148 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ page_title }} - Solar Maintenance{% endblock %}
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user-cog me-2"></i>{{ page_title }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <!-- Affichage des erreurs générales -->
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <!-- Colonne de gauche -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.nom.id_for_label }}" class="form-label">
+                                    <i class="fas fa-user"></i> Nom du Technicien *
+                                </label>
+                                {{ form.nom }}
+                                {% if form.nom.errors %}
+                                <div class="text-danger small">{{ form.nom.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="{{ form.telephone.id_for_label }}" class="form-label">
+                                    <i class="fas fa-phone"></i> Téléphone *
+                                </label>
+                                {{ form.telephone }}
+                                <div class="form-text">Le téléphone doit être unique.</div>
+                                {% if form.telephone.errors %}
+                                <div class="text-danger small">{{ form.telephone.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">
+                                    <i class="fas fa-envelope"></i> Email *
+                                </label>
+                                {{ form.email }}
+                                <div class="form-text">L'email doit être unique.</div>
+                                {% if form.email.errors %}
+                                <div class="text-danger small">{{ form.email.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="{{ form.username.id_for_label }}" class="form-label">
+                                    <i class="fas fa-user-circle"></i> Identifiant de connexion *
+                                </label>
+                                {{ form.username }}
+                                <div class="form-text">{{ form.username.help_text }}</div>
+                                {% if form.username.errors %}
+                                <div class="text-danger small">{{ form.username.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Colonne de droite -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.password.id_for_label }}" class="form-label">
+                                    <i class="fas fa-lock"></i> Mot de passe
+                                    {% if action == 'update' %}
+                                    <small class="text-muted">(Laisser vide pour ne pas changer)</small>
+                                    {% endif %}
+                                </label>
+                                {{ form.password }}
+                                <div class="form-text">{{ form.password.help_text }}</div>
+                                {% if form.password.errors %}
+                                <div class="text-danger small">{{ form.password.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="{{ form.confirm_password.id_for_label }}" class="form-label">
+                                    <i class="fas fa-lock"></i> Confirmer le mot de passe
+                                </label>
+                                {{ form.confirm_password }}
+                                {% if form.confirm_password.errors %}
+                                <div class="text-danger small">{{ form.confirm_password.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="{{ form.photo.id_for_label }}" class="form-label">
+                                    <i class="fas fa-camera"></i> Photo
+                                </label>
+                                {{ form.photo }}
+                                {% if form.photo.errors %}
+                                <div class="text-danger small">{{ form.photo.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Affichage de la photo actuelle en modification -->
+                            {% if action == 'update' and technicien.photo %}
+                            <div class="mb-3">
+                                <label class="form-label">Photo actuelle</label>
+                                <div>
+                                    <img src="{{ technicien.photo.url }}" alt="{{ technicien.nom }}"
+                                         class="img-thumbnail" width="150">
+                                    <br>
+                                    <small class="text-muted">Cocher pour supprimer la photo :</small>
+                                    <input type="checkbox" name="photo-clear" id="photo-clear_id">
+                                    <label for="photo-clear_id">Supprimer</label>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Boutons d'action -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between">
+                                <a href="{% if action == 'update' %}{% url 'technicien_detail' technicien.id %}{% else %}{% url 'technicien_list' %}{% endif %}"
+                                   class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Annuler
+                                </a>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save me-2"></i>
+                                    {% if action == 'update' %}Mettre à jour{% else %}Créer le Technicien{% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

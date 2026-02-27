@@ -1,0 +1,139 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">{{ page_title }}</h1>
+
+    <!-- Boutons d'action -->
+    <!-- Boutons d'action -->
+    <div class="d-flex justify-content-between">
+        <a href="{% url 'reports:report_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour à la liste
+        </a>
+        <div>
+            <button class="btn btn-primary mr-2" onclick="window.print()">
+                <i class="fas fa-print"></i> Imprimer
+            </button>
+            <a href="{% url 'reports:report_delete' report.pk %}" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Supprimer
+            </a>
+        </div>
+    </div>
+
+    <!-- Informations du rapport -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Résumé du Rapport</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card border-left-primary shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        Interventions
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ report.total_interventions }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-left-success shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        Chiffre d'affaires
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ report.total_revenue|floatformat:0 }} FCFA</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-left-info shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                        Taux de réussite
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ report.success_rate|floatformat:1 }}%</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-left-warning shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                        Généré le
+                                    </div>
+                                    <div class="h6 mb-0 font-weight-bold text-gray-800">{{ report.generated_at|date:"d/m/Y" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Résumé exécutif -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h6 class="m-0 font-weight-bold text-primary">Résumé exécutif</h6>
+                        </div>
+                        <div class="card-body">
+                            <p>{{ report.summary|linebreaks }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Recommandations -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h6 class="m-0 font-weight-bold text-primary">Recommandations</h6>
+                        </div>
+                        <div class="card-body">
+                            <p>{{ report.recommendations|linebreaks }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Analyse technique -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h6 class="m-0 font-weight-bold text-primary">Analyse technique</h6>
+                        </div>
+                        <div class="card-body">
+                            <p>{{ report.technical_analysis|linebreaks }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Informations</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>Période:</strong> {{ report.month|date:"F Y" }}</p>
+                    <p><strong>Généré par:</strong> {{ report.generated_by.get_full_name|default:report.generated_by.username }}</p>
+                    <p><strong>Durée moyenne d'intervention:</strong> {{ report.get_avg_duration_display }}</p>
+                    <p><strong>Indice de performance interne:</strong> {{ report.get_performance_score_display }}</p>
+                    <hr>
+
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-lightbulb"></i> Insights IA</h6>
+                        <p class="small mb-0">Ce rapport a été généré automatiquement par l'IA en analysant {{ report.total_interventions }} interventions.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Maintenance prédictive</h6>
+                </div>
+                <div class="card-body">
+                    <p class="small">{{ report.predictive_maintenance|linebreaks|truncatewords:50 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

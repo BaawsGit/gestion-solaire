@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Nouvelle Intervention Programmé</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .info-card {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .info-row {
+            margin: 10px 0;
+            display: flex;
+        }
+        .label {
+            font-weight: bold;
+            min-width: 150px;
+            color: #2c3e50;
+        }
+        .value {
+            flex: 1;
+        }
+        .button {
+            display: inline-block;
+            background: #2ecc71;
+            color: white;
+            text-decoration: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        .footer {
+            background: #2c3e50;
+            color: #bdc3c7;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .status-prevue {
+            background: #f39c12;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛠 NOUVELLE INTERVENTION PROGRAMMÉE</h1>
+            <p>Bonjour {{ intervention.technicien.nom }}, une nouvelle intervention vous a été assignée</p>
+        </div>
+
+        <div class="content">
+            <div class="info-card">
+                <h2 style="margin-top: 0; color: #2c3e50;">📋 Détails de l'intervention</h2>
+
+                <div class="info-row">
+                    <div class="label">ID Intervention:</div>
+                    <div class="value"><strong>#{{ intervention.id }}</strong></div>
+                </div>
+
+                <div class="info-row">
+                    <div class="label">Client:</div>
+                    <div class="value">{{ intervention.client.nom }}</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="label">Date et Heure:</div>
+                    <div class="value">{{ intervention.date_intervention|date:"d/m/Y H:i" }}</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="label">Type:</div>
+                    <div class="value">{{ intervention.get_type_intervention_display }}</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="label">Statut:</div>
+                    <div class="value">
+                        <span class="status-badge status-prevue">{{ intervention.get_statut_display }}</span>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="label">Adresse:</div>
+                    <div class="value">{{ intervention.client.adresse }}</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="label">Téléphone Client:</div>
+                    <div class="value">{{ intervention.client.telephone }}</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="label">Email Client:</div>
+                    <div class="value">{{ intervention.client.email }}</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="label">Fournisseur:</div>
+                    <div class="value">
+                        {% if intervention.fournisseur %}
+                            {{ intervention.fournisseur.nom }}
+                        {% else %}
+                            Non spécifié
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="label">Prix Intervention:</div>
+                    <div class="value" style="color: #27ae60; font-weight: bold;">
+                        {{ intervention.prix_intervention|floatformat:0 }} FCFA
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <p>Merci de vous préparer pour cette intervention. Un rappel vous sera envoyé 24h avant.</p>
+
+                <p style="margin-top: 30px;">
+                    <a href="{{ protocol }}://{{ domain }}{% url 'interventions:detail' intervention.id %}"
+                       class="button">
+                       👉 Voir les détails complets
+                    </a>
+                </p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Cet email a été envoyé automatiquement par le système Solar Maintenance</p>
+            <p>© {% now "Y" %} Solar Maintenance. Tous droits réservés.</p>
+            <p>Pour toute question, contactez l'administrateur à l'adresse: {{ admin_email }}</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,61 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ page_title }} - Solar Maintenance{% endblock %}
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirmation de suppression
+                </h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="alert alert-danger">
+                    <h4><i class="fas fa-exclamation-circle"></i> Attention !</h4>
+                    <p>Vous êtes sur le point de supprimer le technicien :</p>
+                    <h5 class="text-danger">{{ technicien.nom }}</h5>
+
+                    {% if interventions_count > 0 %}
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Attention :</strong> Ce technicien a {{ interventions_count }} intervention(s).
+                        <br>
+                        Si vous le supprimez, toutes ses interventions seront conservées mais le champ "technicien" sera vide.
+                    </div>
+                    {% endif %}
+
+                    <p class="mb-0 mt-3">
+                        Cette action est <strong>irréversible</strong>.
+                        Le compte utilisateur associé sera également supprimé.
+                    </p>
+                </div>
+
+                <div class="mt-4">
+                    <h6>Informations du technicien :</h6>
+                    <ul class="list-unstyled">
+                        <li><strong>Email :</strong> {{ technicien.email }}</li>
+                        <li><strong>Téléphone :</strong> {{ technicien.telephone }}</li>
+                        <li><strong>Identifiant :</strong> {% if technicien.user %}{{ technicien.user.username }}{% else %}Non défini{% endif %}</li>
+                        <li><strong>Interventions :</strong> {{ interventions_count }}</li>
+                    </ul>
+                </div>
+
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{% url 'technicien_detail' technicien.id %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>Annuler
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i>Confirmer la suppression
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

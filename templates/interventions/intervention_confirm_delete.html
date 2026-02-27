@@ -1,0 +1,44 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Supprimer Intervention - Solar Maintenance{% endblock %}
+{% block page_title %}Confirmation de suppression{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-danger">
+                    <h6 class="m-0 font-weight-bold text-white">Confirmation de suppression</h6>
+                </div>
+                <div class="card-body text-center">
+                    <h5 class="mb-4">Êtes-vous sûr de vouloir supprimer cette intervention ?</h5>
+
+                    <div class="alert alert-info">
+                        <strong>Intervention #{{ intervention.id }}</strong><br>
+                        Client: {{ intervention.client.nom }}<br>
+                        Date: {{ intervention.date_intervention|date:"d/m/Y" }}<br>
+                        Type: {{ intervention.get_type_intervention_display }}<br>
+                        Prix: {{ intervention.prix_intervention|floatformat:0 }} FCFA
+                    </div>
+
+                    <p class="text-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Cette action est irréversible !
+                    </p>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Confirmer la suppression
+                        </button>
+                        <a href="{% url 'interventions:list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Annuler
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Mise à jour de votre intervention</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .status-change {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        .arrow {
+            font-size: 24px;
+            margin: 0 20px;
+            color: #3498db;
+        }
+        .status-box {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 10px;
+        }
+        .status-ancien {
+            background: #95a5a6;
+            color: white;
+        }
+        .status-nouveau {
+            background: #3498db;
+            color: white;
+        }
+        .status-terminee { background: #2ecc71; color: white; }
+        .status-en_cours { background: #f39c12; color: white; }
+        .status-annulee { background: #e74c3c; color: white; }
+        .status-prevue { background: #95a5a6; color: white; }
+
+        .info-card {
+            background: #e8f4fc;
+            border: 1px solid #3498db;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .info-row {
+            margin: 10px 0;
+            display: flex;
+        }
+        .label {
+            font-weight: bold;
+            min-width: 150px;
+            color: #2c3e50;
+        }
+        .value {
+            flex: 1;
+        }
+        .footer {
+            background: #2c3e50;
+            color: #bdc3c7;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔄 MISE À JOUR DE STATUT</h1>
+            <p>Le statut de votre intervention a été modifié</p>
+        </div>
+
+        <div class="content">
+            <div class="status-change">
+                <div style="margin-bottom: 20px;">
+                    <span class="status-box status-ancien">
+                        {{ ancien_statut_display }}
+                    </span>
+                    <span class="arrow">→</span>
+                    <span class="status-box status-nouveau status-{{ intervention.statut }}">
+                        {{ intervention.get_statut_display }}
+                    </span>
+                </div>
+                <p>Votre intervention a été mise à jour avec le nouveau statut</p>
+            </div>
+
+            <div class="info-card">
+                <h3 style="margin-top: 0; color: #2c3e50;">📋 Détails de l'intervention</h3>
+
+                <div class="info-row">
+                    <div class="label">Client:</div>
+                    <div class="value">{{ intervention.client.nom }}</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="label">Date:</div>
+                    <div class="value">{{ intervention.date_intervention|date:"d/m/Y H:i" }}</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="label">Type:</div>
+                    <div class="value">{{ intervention.get_type_intervention_display }}</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="label">Technicien:</div>
+                    <div class="value">{{ intervention.technicien.nom }}</div>
+                </div>
+
+                {% if intervention.panne_constatee %}
+                <div class="info-row">
+                    <div class="label">Panne constatée:</div>
+                    <div class="value">{{ intervention.panne_constatee }}</div>
+                </div>
+                {% endif %}
+
+                {% if intervention.pieces_remplacees %}
+                <div class="info-row">
+                    <div class="label">Pièces remplacées:</div>
+                    <div class="value">{{ intervention.pieces_remplacees }}</div>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if intervention.statut == 'terminee' %}
+            <div style="background: #d5f4e6; padding: 20px; border-radius: 5px; margin: 20px 0;">
+                <h4 style="color: #27ae60; margin-top: 0;">✅ Intervention terminée</h4>
+                <p>Votre intervention a été marquée comme terminée. Merci pour votre confiance !</p>
+                <p>Un rapport détaillé est disponible dans votre espace client.</p>
+            </div>
+            {% elif intervention.statut == 'annulee' %}
+            <div style="background: #fdeaea; padding: 20px; border-radius: 5px; margin: 20px 0;">
+                <h4 style="color: #e74c3c; margin-top: 0;">❌ Intervention annulée</h4>
+                <p>Votre intervention a été annulée. Pour toute question, contactez-nous.</p>
+            </div>
+            {% elif intervention.statut == 'en_cours' %}
+            <div style="background: #fff8e1; padding: 20px; border-radius: 5px; margin: 20px 0;">
+                <h4 style="color: #f39c12; margin-top: 0;">⏳ Intervention en cours</h4>
+                <p>Votre intervention est actuellement en cours. Le technicien est sur place.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="footer">
+            <p>Cet email a été envoyé automatiquement par Solar Maintenance</p>
+            <p>© {% now "Y" %} Solar Maintenance. Pour toute question: {{ support_email }}</p>
+        </div>
+    </div>
+</body>
+</html>

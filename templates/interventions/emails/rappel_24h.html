@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Rappel - Intervention demain</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .reminder-badge {
+            display: inline-block;
+            background: #e74c3c;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .info-card {
+            background: #fef9e7;
+            border: 2px solid #f39c12;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        .info-row {
+            margin: 12px 0;
+            display: flex;
+        }
+        .label {
+            font-weight: bold;
+            min-width: 160px;
+            color: #2c3e50;
+        }
+        .value {
+            flex: 1;
+        }
+        .contact-card {
+            background: #e8f6f3;
+            border: 1px solid #2ecc71;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        .preparation-list {
+            background: #f4f6f6;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        .footer {
+            background: #2c3e50;
+            color: #bdc3c7;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+        }
+        .urgent {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔔 RAPPEL - INTERVENTION DEMAIN</h1>
+            <p>Votre intervention est programmée pour demain</p>
+            <div class="reminder-badge">RAPPEL 24H</div>
+        </div>
+
+        <div class="content">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <p style="font-size: 18px; color: #e67e22; font-weight: bold;">
+                    ⚠️ N'OUBLIEZ PAS : L'intervention est prévue pour DEMAIN
+                </p>
+            </div>
+
+            <div class="info-card">
+                <h2 style="margin-top: 0; color: #2c3e50; text-align: center;">📅 INTERVENTION À NE PAS MANQUER</h2>
+
+                <div class="info-row">
+                    <div class="label">Date et Heure:</div>
+                    <div class="value">
+                        <strong style="font-size: 16px; color: #e74c3c;">
+                            {{ intervention.date_intervention|date:"d/m/Y à H:i" }}
+                        </strong>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="label">Client:</div>
+                    <div class="value">{{ intervention.client.nom }}</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="label">Adresse:</div>
+                    <div class="value">{{ intervention.client.adresse }}</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="label">Type d'intervention:</div>
+                    <div class="value">{{ intervention.get_type_intervention_display }}</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="label">Durée estimée:</div>
+                    <div class="value">2-4 heures (selon complexité)</div>
+                </div>
+            </div>
+
+            <div class="contact-card">
+                <h3 style="color: #2c3e50; margin-top: 0;">📞 COORDONNÉES</h3>
+
+                <div class="info-row">
+                    <div class="label">Client:</div>
+                    <div class="value">
+                        {{ intervention.client.nom }}<br>
+                        {{ intervention.client.telephone }}<br>
+                        {{ intervention.client.email }}
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="label">Technicien:</div>
+                    <div class="value">
+                        {{ intervention.technicien.nom }}<br>
+                        {{ intervention.technicien.telephone }}<br>
+                        {{ intervention.technicien.email }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="preparation-list">
+                <h3 style="color: #2c3e50; margin-top: 0;">✅ PRÉPARATION REQUISE</h3>
+
+                <h4>Pour le Client :</h4>
+                <ul>
+                    <li>Assurez votre présence ou laissez les clés d'accès</li>
+                    <li>Dégagez l'accès au système solaire</li>
+                    <li>Préparez l'ancienne facture si disponible</li>
+                    <li>Assurez une prise de courant disponible</li>
+                </ul>
+
+                <h4>Pour le Technicien :</h4>
+                <ul>
+                    <li>Vérifiez votre matériel et outils</li>
+                    <li>Confirmez votre disponibilité</li>
+                    <li>Préparez les pièces de rechange nécessaires</li>
+                    <li>Vérifiez l'itinéraire</li>
+                </ul>
+            </div>
+
+            <div style="background: #fdeaea; padding: 20px; border-radius: 5px; margin: 25px 0;">
+                <h4 style="color: #e74c3c; margin-top: 0;">🔄 BESOIN DE REPORTER ?</h4>
+                <p>Si vous avez un empêchement, contactez-nous URGENCEMMENT :</p>
+                <p class="urgent">{{ support_phone }} | {{ support_email }}</p>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <p>Un bon déroulement nécessite une bonne préparation !</p>
+                <p style="font-size: 12px; color: #7f8c8d;">
+                    📍 Pensez à la ponctualité pour le bon déroulement de l'intervention
+                </p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Rappel automatique envoyé par Solar Maintenance - Système de gestion d'interventions</p>
+            <p>© {% now "Y" %} Solar Maintenance. Tél: {{ support_phone }}</p>
+        </div>
+    </div>
+</body>
+</html>

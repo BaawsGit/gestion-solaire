@@ -1,0 +1,128 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">{{ page_title }}</h1>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Statut de la connexion Ollama</h6>
+                    <a href="{% url 'reports:generate_report' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-arrow-left"></i> Retour
+                    </a>
+                </div>
+                <div class="card-body">
+                    <!-- Résultat de la connexion -->
+                    <div class="alert alert-{% if connection.success %}success{% else %}danger{% endif %}">
+                        <h5>
+                            <i class="fas fa-{% if connection.success %}check-circle{% else %}times-circle{% endif %}"></i>
+                            {{ connection.message }}
+                        </h5>
+
+                        {% if connection.success %}
+                            <div class="mt-3">
+                                <p><strong>URL:</strong> {{ connection.url }}</p>
+                                <p><strong>Modèle configuré:</strong> {{ connection.model }}</p>
+
+                                {% if connection.models %}
+                                    <p><strong>Modèles disponibles:</strong></p>
+                                    <ul class="list-group">
+                                        {% for model in connection.models %}
+                                            <li class="list-group-item">{{ model }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <div class="mt-3">
+                                <h6>Instructions de dépannage:</h6>
+                                <ol>
+                                    <li>Vérifiez qu'Ollama est installé: <a href="https://ollama.com/" target="_blank">https://ollama.com/</a></li>
+                                    <li>Lancez Ollama dans un terminal: <code>ollama serve</code></li>
+                                    <li>Téléchargez un modèle: <code>ollama pull llama3</code></li>
+                                    <li>Vérifiez que le service tourne: <code>ollama list</code></li>
+                                </ol>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Test du modèle -->
+                    {% if model_test %}
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h6 class="m-0 font-weight-bold text-primary">Test du modèle</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-{% if model_test.success %}success{% else %}warning{% endif %}">
+                                <p><strong>Résultat:</strong> {{ model_test.message }}</p>
+
+                                {% if model_test.response %}
+                                    <hr>
+                                    <p><strong>Réponse du modèle:</strong></p>
+                                    <div class="border p-3 bg-light">
+                                        {{ model_test.response }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Bouton de test -->
+                    <div class="text-center mt-4">
+                        <a href="{% url 'reports:check_ollama_status' %}" class="btn btn-info mr-2" target="_blank">
+                            <i class="fas fa-sync-alt"></i> Vérifier à nouveau (JSON)
+                        </a>
+                        <button onclick="location.reload()" class="btn btn-secondary">
+                            <i class="fas fa-redo"></i> Recharger la page
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Configuration requise</h6>
+                </div>
+                <div class="card-body">
+                    <h6>Étapes d'installation:</h6>
+                    <ol class="small">
+                        <li>
+                            <strong>Installation d'Ollama:</strong><br>
+                            <code>curl -fsSL https://ollama.com/install.sh | sh</code>
+                        </li>
+                        <li>
+                            <strong>Lancer le serveur:</strong><br>
+                            <code>ollama serve</code>
+                        </li>
+                        <li>
+                            <strong>Télécharger un modèle:</strong><br>
+                            <code>ollama pull llama3</code><br>
+                            <small>ou <code>ollama pull gemma3:4b</code></small>
+                        </li>
+                        <li>
+                            <strong>Vérifier l'installation:</strong><br>
+                            <code>ollama list</code>
+                        </li>
+                    </ol>
+
+                    <hr>
+
+                    <h6>Modèles recommandés:</h6>
+                    <ul class="small">
+                        <li><code>llama3</code> - 8GB RAM minimum</li>
+                        <li><code>gemma3:4b</code> - 4GB RAM minimum</li>
+                        <li><code>mistral</code> - 7GB RAM minimum</li>
+                        <li><code>phi3</code> - 2GB RAM minimum</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

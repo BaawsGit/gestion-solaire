@@ -1,0 +1,156 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Gestion des Techniciens - Solar Maintenance{% endblock %}
+{% block page_title %}Gestion des Techniciens{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-cog me-2"></i>Liste des Techniciens
+                        <span class="badge bg-secondary ms-2">{{ total_techniciens }}</span>
+                    </h5>
+                    <a href="{% url 'technicien_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Ajouter un Technicien
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Barre de recherche -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <form method="get" class="d-flex">
+                            <input type="text"
+                                   name="search"
+                                   class="form-control me-2"
+                                   placeholder="Rechercher un technicien..."
+                                   value="{{ request.GET.search }}">
+                            <button type="submit" class="btn btn-outline-primary">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Tableau des techniciens -->
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Photo</th>
+                                <th>Nom</th>
+                                <th>Téléphone</th>
+                                <th>Email</th>
+                                <th>Identifiant</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for technicien in techniciens %}
+                            <tr>
+                                <td>{{ technicien.id }}</td>
+                                <td>
+                                    {% if technicien.photo %}
+                                    <img src="{{ technicien.photo.url }}" alt="{{ technicien.nom }}"
+                                         class="rounded-circle" width="50" height="50">
+                                    {% else %}
+                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center"
+                                         style="width: 50px; height: 50px;">
+                                        <i class="fas fa-user text-white"></i>
+                                    </div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong>{{ technicien.nom }}</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        Interventions: {{ technicien.interventions.count }}
+                                    </small>
+                                </td>
+                                <td>{{ technicien.telephone }}</td>
+                                <td>{{ technicien.email }}</td>
+                                <td>
+                                    {% if technicien.user %}
+                                    <span class="badge bg-info">{{ technicien.user.username }}</span>
+                                    {% else %}
+                                    <span class="text-muted">Non défini</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'technicien_detail' technicien.id %}"
+                                           class="btn btn-sm btn-primary"
+                                           title="Voir">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'technicien_update' technicien.id %}"
+                                           class="btn btn-sm btn-warning"
+                                           title="Modifier">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'technicien_delete' technicien.id %}"
+                                           class="btn btn-sm btn-danger"
+                                           title="Supprimer">
+                                           <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center py-4">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        Aucun technicien trouvé.
+                                        <a href="{% url 'technicien_create' %}" class="alert-link">Ajouter un technicien</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if techniciens.has_other_pages %}
+                <nav aria-label="Pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if techniciens.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ techniciens.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        {% for num in techniciens.paginator.page_range %}
+                            {% if techniciens.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                            {% elif num > techniciens.number|add:'-3' and num < techniciens.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if techniciens.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ techniciens.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,175 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Détails Intervention - Solar Maintenance{% endblock %}
+{% block page_title %}Détails de l'Intervention #{{ intervention.id }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Intervention #{{ intervention.id }}</h6>
+            <div>
+                <!-- AJOUTER CE BOUTON -->
+                <a href="{% url 'interventions:pdf' intervention.pk %}"
+                   class="btn btn-danger mr-2"
+                   title="Exporter en PDF">
+                    <i class="fas fa-file-pdf"></i> PDF
+                </a>
+                {% if not is_technicien or intervention.technicien == request.user.technicien %}
+                <a href="{% url 'interventions:update' intervention.pk %}" class="btn btn-warning">
+                    <i class="fas fa-edit"></i> Modifier
+                </a>
+                {% endif %}
+                <a href="{% url 'interventions:list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Retour
+                </a>
+            </div>
+        </div>
+
+        <!-- Ajouter cette section pour afficher comment le prix a été calculé -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>Détails du calcul du prix</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Type d'intervention:</strong> {{ intervention.get_type_intervention_display }}</p>
+                <p><strong>KVA du client:</strong> {{ intervention.client.get_kva }} KVA</p>
+                <p><strong>Prix calculé:</strong> {{ intervention.prix_intervention|floatformat:0 }} FCFA</p>
+                {% if intervention.type_intervention == 'reparation' %}
+                <p class="text-info"><i class="fas fa-info-circle"></i> Prix saisi manuellement pour une réparation</p>
+                {% else %}
+                <p class="text-success"><i class="fas fa-calculator"></i> Prix calculé automatiquement</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Informations Générales</h5>
+                    <table class="table table-bordered">
+                        <tr>
+                            <th>Date d'intervention:</th>
+                            <td>{{ intervention.date_intervention|date:"d/m/Y" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Type d'intervention:</th>
+                            <td>
+                                {{ intervention.get_type_intervention_display }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Statut:</th>
+                            <td>
+                                {% if intervention.statut == 'terminee' %}
+                                    <span>Terminée</span>
+                                {% elif intervention.statut == 'en_cours' %}
+                                    <span>En cours</span>
+                                {% elif intervention.statut == 'prevue' %}
+                                    <span>Prévue</span>
+                                {% elif intervention.statut == 'annulee' %}
+                                    <span>Annulée</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Prix:</th>
+                            <td>{{ intervention.prix_intervention|floatformat:0 }} FCFA</td>
+                        </tr>
+                        <!-- Dans la section Informations Générales, ajoutez cette ligne : -->
+                        <tr>
+                            <th>Durée totale:</th>
+                            <td>{{ duree_formatee }}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="col-md-6">
+                    <h5>Personnes Concernées</h5>
+                    <table class="table table-bordered">
+                        <tr>
+                            <th>Client:</th>
+                            <td>{{ intervention.client.nom }}</td>
+                        </tr>
+                        <tr>
+                            <th>Technicien:</th>
+                            <td>
+                                {% if intervention.technicien %}
+                                    {{ intervention.technicien.nom }}
+                                {% else %}
+                                    <span class="text-muted">Non assigné</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Fournisseur:</th>
+                            <td>
+                                {% if intervention.fournisseur %}
+                                    {{ intervention.fournisseur.nom }}
+                                {% else %}
+                                    <span class="text-muted">Non spécifié</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>KVA du client:</th>
+                            <td>
+                                {% with intervention.client.extraire_kva as kva %}
+                                    {% if kva %}
+                                        <span>{{ kva }} KVA</span>
+                                    {% else %}
+                                        <span class="text-muted">Non détecté</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <h5>Panne Constatée</h5>
+                    <div class="card">
+                        <div class="card-body">
+                            {% if intervention.panne_constatee %}
+                                {{ intervention.panne_constatee|linebreaks }}
+                            {% else %}
+                                <span class="text-muted">Aucune panne constatée</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <h5>Pièces Remplacées</h5>
+                    <div class="card">
+                        <div class="card-body">
+                            {% if intervention.pieces_remplacees %}
+                                {{ intervention.pieces_remplacees|linebreaks }}
+                            {% else %}
+                                <span class="text-muted">Aucune pièce remplacée</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-12">
+                    <h5>Notes</h5>
+                    <div class="card">
+                        <div class="card-body">
+                            {% if intervention.notes %}
+                                {{ intervention.notes|linebreaks }}
+                            {% else %}
+                                <span class="text-muted">Aucune note</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

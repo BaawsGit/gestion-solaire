@@ -1,0 +1,290 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ page_title }} - Solar Maintenance{% endblock %}
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user me-2"></i>{{ page_title }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate id="clientForm">
+                    {% csrf_token %}
+
+                    <!-- Affichage des erreurs générales -->
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <!-- Colonne de gauche -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.nom.id_for_label }}" class="form-label">
+                                    <i class="fas fa-user"></i> Nom du Client *
+                                </label>
+                                {{ form.nom }}
+                                {% if form.nom.errors %}
+                                <div class="text-danger small">{{ form.nom.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">
+                                    <i class="fas fa-envelope"></i> Email *
+                                </label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                <div class="text-danger small">{{ form.email.errors }}</div>
+                                {% endif %}
+                                <div class="form-text">L'email doit être unique pour chaque client.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="{{ form.telephone.id_for_label }}" class="form-label">
+                                    <i class="fas fa-phone"></i> Téléphone *
+                                </label>
+                                {{ form.telephone }}
+                                {% if form.telephone.errors %}
+                                <div class="text-danger small">{{ form.telephone.errors }}</div>
+                                {% endif %}
+                                <div class="form-text">Le téléphone doit être unique pour chaque client.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="{{ form.fournisseur.id_for_label }}" class="form-label">
+                                    <i class="fas fa-truck"></i> Fournisseur
+                                </label>
+                                <div class="input-group">
+                                    {{ form.fournisseur }}
+                                    <button type="button" class="btn btn-outline-primary"
+                                            data-bs-toggle="modal" data-bs-target="#fournisseurModal">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                                {% if form.fournisseur.errors %}
+                                <div class="text-danger small">{{ form.fournisseur.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Colonne de droite -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.type_installation.id_for_label }}" class="form-label">
+                                    <i class="fas fa-solar-panel"></i> Type d'installation *
+                                    <small class="text-muted">(doit contenir KVA)</small>
+                                </label>
+                                {{ form.type_installation }}
+                                <div class="form-text">{{ form.type_installation.help_text }}</div>
+                                {% if form.type_installation.errors %}
+                                <div class="text-danger small">{{ form.type_installation.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="{{ form.date_installation.id_for_label }}" class="form-label">
+                                    <i class="fas fa-calendar-alt"></i> Date d'installation *
+                                </label>
+                                {{ form.date_installation }}
+                                {% if form.date_installation.errors %}
+                                <div class="text-danger small">{{ form.date_installation.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="{{ form.adresse.id_for_label }}" class="form-label">
+                                    <i class="fas fa-map-marker-alt"></i> Adresse *
+                                </label>
+                                {{ form.adresse }}
+                                {% if form.adresse.errors %}
+                                <div class="text-danger small">{{ form.adresse.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <!-- Après le champ fournisseur, ajouter : -->
+                            <div class="mb-3">
+                                <label for="{{ form.materiels_fournis.id_for_label }}" class="form-label">
+                                    <i class="fas fa-boxes"></i> Matériels fournis
+                                </label>
+                                {{ form.materiels_fournis }}
+                                {% if form.materiels_fournis.errors %}
+                                <div class="text-danger small">{{ form.materiels_fournis.errors }}</div>
+                                {% endif %}
+                                <div class="form-text">Matériels spécifiques fournis à ce client par le fournisseur.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notes (pleine largeur) -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="{{ form.notes.id_for_label }}" class="form-label">
+                                    <i class="fas fa-sticky-note"></i> Notes
+                                </label>
+                                {{ form.notes }}
+                                {% if form.notes.errors %}
+                                <div class="text-danger small">{{ form.notes.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Boutons d'action -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between">
+                                <a href="{% if action == 'update' %}{% url 'client_detail' client.id %}{% else %}{% url 'client_list' %}{% endif %}"
+                                   class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Annuler
+                                </a>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save me-2"></i>
+                                    {% if action == 'update' %}Mettre à jour{% else %}Créer le Client{% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour créer un fournisseur -->
+<div class="modal fade" id="fournisseurModal" tabindex="-1" aria-labelledby="fournisseurModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fournisseurModalLabel">
+                    <i class="fas fa-truck me-2"></i>Ajouter un Fournisseur
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="fournisseurForm">
+                    <div class="mb-3">
+                        <label for="fournisseurNom" class="form-label">Nom *</label>
+                        <input type="text" class="form-control" id="fournisseurNom" name="nom" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fournisseurEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="fournisseurEmail" name="email">
+                    </div>
+                    <div class="mb-3">
+                        <label for="fournisseurTelephone" class="form-label">Téléphone</label>
+                        <input type="text" class="form-control" id="fournisseurTelephone" name="telephone">
+                    </div>
+                    <div class="mb-3">
+                        <label for="fournisseurAdresse" class="form-label">Adresse</label>
+                        <textarea class="form-control" id="fournisseurAdresse" name="adresse" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Annuler
+                </button>
+                <button type="button" class="btn btn-primary" id="saveFournisseur">
+                    <i class="fas fa-save me-2"></i>Enregistrer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Script pour la validation KVA en temps réel -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const kvaInput = document.querySelector('#{{ form.type_installation.id_for_label }}');
+    const validationMsg = document.createElement('div');
+    validationMsg.className = 'mt-2 small';
+    kvaInput.parentNode.appendChild(validationMsg);
+
+    kvaInput.addEventListener('input', function() {
+        const value = this.value.toUpperCase();
+        const kvaMatch = value.match(/(\d+)\s*KVA/);
+
+        if (kvaMatch) {
+            const kva = parseInt(kvaMatch[1]);
+            this.style.borderColor = '#28a745';
+            validationMsg.innerHTML = `<span class="text-success"><i class="fas fa-check-circle"></i> KVA détecté: ${kva}</span>`;
+        } else if (value.trim() !== '') {
+            this.style.borderColor = '#dc3545';
+            validationMsg.innerHTML = `<span class="text-danger"><i class="fas fa-exclamation-circle"></i> Aucun KVA détecté dans le texte</span>`;
+        } else {
+            this.style.borderColor = '';
+            validationMsg.innerHTML = '';
+        }
+    });
+
+    // Gestion du formulaire fournisseur en AJAX
+    const saveFournisseurBtn = document.getElementById('saveFournisseur');
+    const fournisseurForm = document.getElementById('fournisseurForm');
+    const fournisseurSelect = document.querySelector('#{{ form.fournisseur.id_for_label }}');
+
+    saveFournisseurBtn.addEventListener('click', function() {
+        // Récupérer les données du formulaire
+        const formData = {
+            nom: document.getElementById('fournisseurNom').value,
+            email: document.getElementById('fournisseurEmail').value,
+            telephone: document.getElementById('fournisseurTelephone').value,
+            adresse: document.getElementById('fournisseurAdresse').value,
+        };
+
+        // Validation basique
+        if (!formData.nom.trim()) {
+            alert('Le nom du fournisseur est obligatoire.');
+            return;
+        }
+
+        // Envoyer les données en AJAX
+        fetch("{% url 'ajax_create_fournisseur' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Ajouter le nouveau fournisseur à la liste déroulante
+                const option = document.createElement('option');
+                option.value = data.id;
+                option.textContent = data.nom;
+                option.selected = true;
+                fournisseurSelect.appendChild(option);
+
+                // Fermer le modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('fournisseurModal'));
+                modal.hide();
+
+                // Réinitialiser le formulaire
+                fournisseurForm.reset();
+
+                // Message de succès
+                alert('Fournisseur créé avec succès!');
+            } else {
+                alert('Erreur: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            alert('Une erreur est survenue lors de la création du fournisseur.');
+        });
+    });
+});
+</script>
+{% endblock %}

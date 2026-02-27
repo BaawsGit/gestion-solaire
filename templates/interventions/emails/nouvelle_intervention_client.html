@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Votre intervention solaire est programmée</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .info-card {
+            background: #f8f9fa;
+            border-left: 4px solid #2ecc71;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .info-row {
+            margin: 10px 0;
+            display: flex;
+        }
+        .label {
+            font-weight: bold;
+            min-width: 150px;
+            color: #2c3e50;
+        }
+        .value {
+            flex: 1;
+        }
+        .technicien-info {
+            background: #e8f6f3;
+            border: 1px solid #2ecc71;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .footer {
+            background: #2c3e50;
+            color: #bdc3c7;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+        }
+        .important-note {
+            background: #fff8e1;
+            border: 1px solid #ffc107;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>☀ INTERVENTION SOLAIRE PROGRAMMÉE</h1>
+            <p>Bonjour {{ intervention.client.nom }}, votre intervention a été programmée</p>
+        </div>
+
+        <div class="content">
+            <p>Nous vous confirmons la programmation de votre intervention solaire. Voici les détails :</p>
+
+            <div class="info-card">
+                <h2 style="margin-top: 0; color: #2c3e50;">📅 Rendez-vous confirmé</h2>
+
+                <div class="info-row">
+                    <div class="label">Date et Heure:</div>
+                    <div class="value"><strong>{{ intervention.date_intervention|date:"d/m/Y à H:i" }}</strong></div>
+                </div>
+
+                <div class="info-row">
+                    <div class="label">Type d'intervention:</div>
+                    <div class="value">{{ intervention.get_type_intervention_display }}</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="label">Statut:</div>
+                    <div class="value">Prévue ✓</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="label">Prix:</div>
+                    <div class="value" style="color: #27ae60; font-weight: bold;">
+                        {{ intervention.prix_intervention|floatformat:0 }} FCFA
+                    </div>
+                </div>
+            </div>
+
+            <div class="technicien-info">
+                <h3 style="color: #2c3e50; margin-top: 0;">👨‍🔧 Votre technicien</h3>
+
+                <div class="info-row">
+                    <div class="label">Nom:</div>
+                    <div class="value">{{ intervention.technicien.nom }}</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="label">Téléphone:</div>
+                    <div class="value">{{ intervention.technicien.telephone }}</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="label">Email:</div>
+                    <div class="value">{{ intervention.technicien.email }}</div>
+                </div>
+            </div>
+
+            <div class="important-note">
+                <h4 style="color: #d35400; margin-top: 0;">ℹ️ Informations importantes</h4>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>Le technicien vous contactera peut-être avant l'intervention</li>
+                    <li>Assurez-vous d'être présent ou de laisser l'accès nécessaire</li>
+                    <li>En cas d'empêchement, contactez-nous au plus vite</li>
+                    <li>Un rappel vous sera envoyé 24h avant l'intervention</li>
+                </ul>
+            </div>
+
+            <div style="margin-top: 30px; padding: 20px; background: #e3f2fd; border-radius: 5px;">
+                <p><strong>Besoin de modifier la date ?</strong><br>
+                Contactez directement votre technicien ou répondez à cet email.</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Cet email a été envoyé automatiquement par Solar Maintenance</p>
+            <p>© {% now "Y" %} Solar Maintenance. Service client: {{ support_phone }} | {{ support_email }}</p>
+            <p>Merci pour votre confiance !</p>
+        </div>
+    </div>
+</body>
+</html>

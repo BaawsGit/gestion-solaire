@@ -1,0 +1,70 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Supprimer Fournisseur - Solar Maintenance{% endblock %}
+{% block page_title %}Supprimer Fournisseur{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirmation de suppression
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <h5 class="alert-heading">
+                        <i class="fas fa-exclamation-circle me-2"></i>Attention !
+                    </h5>
+                    <p class="mb-0">
+                        Vous êtes sur le point de supprimer définitivement le fournisseur :
+                    </p>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ fournisseur.nom }}</h5>
+                        <ul class="list-unstyled">
+                            {% if fournisseur.email %}
+                            <li><i class="fas fa-envelope me-2"></i>{{ fournisseur.email }}</li>
+                            {% endif %}
+                            {% if fournisseur.telephone %}
+                            <li><i class="fas fa-phone me-2"></i>{{ fournisseur.telephone }}</li>
+                            {% endif %}
+                            {% if fournisseur.adresse %}
+                            <li><i class="fas fa-map-marker-alt me-2"></i>{{ fournisseur.adresse|truncatechars:100 }}</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+
+                {% if clients_count > 0 %}
+                <div class="alert alert-danger">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-users me-2"></i>Impact sur les clients
+                    </h6>
+                    <p class="mb-0">
+                        Ce fournisseur est associé à <strong>{{ clients_count }} client(s)</strong>.
+                        En le supprimant, ces clients n'auront plus de fournisseur attribué.
+                    </p>
+                </div>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="confirm_delete" value="1">
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'fournisseur_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Annuler
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i>Supprimer définitivement
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

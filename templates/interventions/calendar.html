@@ -1,0 +1,310 @@
+<!-- templates/interventions/calendar.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Calendrier - Solar Maintenance{% endblock %}
+{% block page_title %}Calendrier des Interventions{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Styles personnalisés pour le calendrier */
+    #calendar {
+        max-width: 100%;
+        margin: 20px auto;
+        padding: 20px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .calendar-filters {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border: 1px solid #dee2e6;
+    }
+
+    .calendar-legend {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin-top: 15px;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+    }
+
+    /* Tooltip personnalisé */
+    .fc-event {
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    .fc-event:hover {
+        transform: scale(1.02);
+        z-index: 1000 !important;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .fc-toolbar {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .fc-toolbar .fc-center {
+            order: 1;
+            margin: 10px 0;
+        }
+
+        .fc-toolbar .fc-left,
+        .fc-toolbar .fc-right {
+            order: 2;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Filtres -->
+    <div class="calendar-filters">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary" id="today-btn">
+                        Aujourd'hui
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" id="month-view">
+                        Mois
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" id="week-view">
+                        Semaine
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" id="day-view">
+                        Jour
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-4 text-right">
+                <a href="{% url 'interventions:list' %}" class="btn btn-secondary">
+                    <i class="fas fa-list"></i> Vue Liste
+                </a>
+            </div>
+        </div>
+
+        <!-- Légende -->
+        <div class="calendar-legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #28a745;"></div>
+                <small>Terminée</small>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #ffc107;"></div>
+                <small>En cours</small>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #3788d8;"></div>
+                <small>Non définie</small>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #6c757d;"></div>
+                <small>Prévue</small>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #dc3545;"></div>
+                <small>Annulée</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendrier -->
+    <div id="calendar"></div>
+</div>
+
+<!-- Modal pour les détails -->
+<div class="modal fade" id="eventModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="eventTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-bordered">
+                    <tr>
+                        <th>Client:</th>
+                        <td id="eventClient"></td>
+                    </tr>
+                    <tr>
+                        <th>Technicien:</th>
+                        <td id="eventTechnicien"></td>
+                    </tr>
+                    <tr>
+                        <th>Type:</th>
+                        <td id="eventType"></td>
+                    </tr>
+                    <tr>
+                        <th>Statut:</th>
+                        <td id="eventStatut"></td>
+                    </tr>
+                    <tr>
+                        <th>Prix:</th>
+                        <td id="eventPrix"></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                <a href="#" class="btn btn-primary" id="eventDetailLink">
+                    <i class="fas fa-eye"></i> Voir Détails
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialiser le calendrier
+    var calendarEl = document.getElementById('calendar');
+
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        // Configuration de base
+        locale: 'fr',
+        timeZone: 'UTC',
+        firstDay: 1, // Lundi
+        navLinks: true,
+        editable: false,
+        selectable: true,
+
+        // En-tête
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+
+        // Vues - AJOUTER la configuration pour la vue mois
+        views: {
+            dayGridMonth: {
+                buttonText: 'Mois',
+                // SOLUTION: Forcer l'affichage en "block" au lieu de "listItem"
+                eventDisplay: 'block',
+                // Cacher l'heure dans la vue mois
+                displayEventTime: false,
+                // Limiter le nombre d'événements par jour pour éviter le débordement
+                dayMaxEventRows: 5
+            },
+            timeGridWeek: { buttonText: 'Semaine' },
+            timeGridDay: { buttonText: 'Jour' }
+        },
+
+        // Source des événements
+        events: '{% url "interventions:calendar_events" %}',
+
+        // Gestion des clics
+        eventClick: function(info) {
+            // Remplir la modal
+            document.getElementById('eventTitle').textContent = info.event.title;
+            document.getElementById('eventClient').textContent = info.event.extendedProps.client;
+            document.getElementById('eventTechnicien').textContent = info.event.extendedProps.technicien;
+            document.getElementById('eventType').textContent = info.event.extendedProps.type;
+            document.getElementById('eventStatut').textContent = info.event.extendedProps.statut;
+            document.getElementById('eventPrix').textContent = info.event.extendedProps.prix + ' FCFA';
+            document.getElementById('eventDetailLink').href = info.event.extendedProps.url;
+
+            // Afficher la modal
+            var modal = new bootstrap.Modal(document.getElementById('eventModal'));
+            modal.show();
+
+            info.jsEvent.preventDefault(); // Empêcher la navigation
+        },
+
+        // Personnalisation des événements - MODIFIER pour la vue mois
+        eventContent: function(arg) {
+            // Créer un contenu personnalisé avec une icône
+            let icon = '🛠️';
+            if (arg.event.extendedProps.type === 'Installation') icon = '📦';
+            if (arg.event.extendedProps.type === 'Entretien') icon = '🧹';
+
+            let eventTitle = arg.event.title;
+
+            // Pour la vue mois, raccourcir le texte
+            if (arg.view.type === 'dayGridMonth') {
+                // Garder seulement le nom du client (avant le tiret)
+                eventTitle = eventTitle.split(' - ')[0];
+                if (eventTitle.length > 12) {
+                    eventTitle = eventTitle.substring(0, 10) + '...';
+                }
+                // Retourner un simple texte avec icône pour la vue mois
+                return { html: '<div>' + icon + ' ' + eventTitle + '</div>' };
+            } else {
+                // Pour les autres vues, garder le format original
+                let arrayOfDomNodes = [
+                    document.createElement('div'),
+                    document.createTextNode(icon + ' ' + eventTitle)
+                ];
+                return { domNodes: arrayOfDomNodes };
+            }
+        },
+
+        // AJOUTER cette fonction pour s'assurer que les couleurs sont appliquées
+        eventDidMount: function(info) {
+            // Pour toutes les vues, s'assurer que les couleurs sont bien appliquées
+            if (info.event.backgroundColor) {
+                info.el.style.backgroundColor = info.event.backgroundColor;
+            }
+            if (info.event.borderColor) {
+                info.el.style.borderColor = info.event.borderColor;
+                info.el.style.borderWidth = '1px';
+            }
+            if (info.event.textColor) {
+                info.el.style.color = info.event.textColor;
+            }
+
+            // Pour la vue mois, ajouter un peu de padding
+            if (info.view.type === 'dayGridMonth') {
+                info.el.style.padding = '2px 4px';
+                info.el.style.borderRadius = '3px';
+                info.el.style.margin = '1px 0';
+                info.el.style.fontSize = '0.85em';
+                info.el.style.fontWeight = '500';
+                info.el.style.opacity = '1'; // Forcer l'opacité
+            }
+        }
+    });
+
+    calendar.render();
+
+    // Gestionnaires pour les boutons
+    document.getElementById('today-btn').addEventListener('click', function() {
+        calendar.today();
+    });
+
+    document.getElementById('month-view').addEventListener('click', function() {
+        calendar.changeView('dayGridMonth');
+    });
+
+    document.getElementById('week-view').addEventListener('click', function() {
+        calendar.changeView('timeGridWeek');
+    });
+
+    document.getElementById('day-view').addEventListener('click', function() {
+        calendar.changeView('timeGridDay');
+    });
+});
+</script>
+{% endblock %}

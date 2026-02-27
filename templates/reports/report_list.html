@@ -1,0 +1,205 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">{{ page_title }}</h1>
+
+    {% if messages %}
+    <div class="messages mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Carte de statut Ollama -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Statut de l'IA</h6>
+            <a href="{% url 'reports:test_connection' %}" class="btn btn-sm btn-info">
+                <i class="fas fa-plug"></i> Tester la connexion
+            </a>
+        </div>
+        <div class="card-body">
+            <div id="ollamaStatus" class="text-center">
+                {% if ollama_available %}
+                <span class="badge badge-success p-2">
+                    <i class="fas fa-check-circle"></i> Ollama est connecté
+                </span>
+                <p class="mt-2 mb-0">Prêt à générer des analyses IA</p>
+                {% else %}
+                <span class="badge badge-danger p-2">
+                    <i class="fas fa-times-circle"></i> Ollama non connecté
+                </span>
+                <p class="mt-2 mb-0">
+                    Assurez-vous qu'Ollama est en cours d'exécution:<br>
+                    <code>ollama serve</code>
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Actions</h6>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'reports:generate_report' %}" class="btn btn-primary">
+                        <i class="fas fa-brain"></i> Générer un nouveau rapport IA
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Liste des rapports -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Rapports existants</h6>
+        </div>
+        <div class="card-body">
+            {% if reports %}
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Mois</th>
+                            <th>Titre</th>
+                            <th>Interventions</th>
+                            <th>CA (FCFA)</th>
+                            <th>Taux réussite</th>
+                            <th>Généré le</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in reports %}
+                        <tr>
+                            <td>{{ report.month|date:"F Y" }}</td>
+                            <td>{{ report.title }}</td>
+                            <td class="text-center">{{ report.total_interventions }}</td>
+                            <td class="text-right">{{ report.total_revenue|floatformat:0 }}</td>
+                            <td class="text-center">{{ report.success_rate|floatformat:1 }}%</td>
+                            <td>{{ report.generated_at|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                <a href="{% url 'reports:report_detail' report.pk %}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'reports:report_delete' report.pk %}" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if reports.has_other_pages %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if reports.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ reports.previous_page_number }}">Précédent</a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in reports.paginator.page_range %}
+                    {% if reports.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if reports.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ reports.next_page_number }}">Suivant</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-file-alt fa-4x text-gray-300 mb-3"></i>
+                <h5>Aucun rapport généré</h5>
+                <p class="text-gray-500">Commencez par générer votre premier rapport d'analyse IA</p>
+                <a href="{% url 'reports:generate_report' %}" class="btn btn-primary">
+                    <i class="fas fa-brain"></i> Générer un rapport
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+
+
+{% block javascript %}
+<script>
+$(document).ready(function() {
+    $('#checkOllama').click(function() {
+        // Mettre à jour le bouton pendant le chargement
+        $(this).html('<i class="fas fa-spinner fa-spin"></i> Vérification...');
+        $(this).prop('disabled', true);
+
+        $.getJSON('{% url "reports:check_ollama_status" %}', function(data) {
+            if (data.available) {
+                $('#ollamaStatus').html(`
+                    <div class="alert alert-success">
+                        <h5><i class="fas fa-check-circle"></i> ${data.message}</h5>
+                        <p class="mb-0">
+                            <strong>Modèle:</strong> ${data.model}<br>
+                            <strong>URL:</strong> ${data.url}<br>
+                            <small>${data.models ? 'Modèles disponibles: ' + data.models.join(', ') : ''}</small>
+                        </p>
+                    </div>
+                `);
+            } else {
+                $('#ollamaStatus').html(`
+                    <div class="alert alert-danger">
+                        <h5><i class="fas fa-times-circle"></i> ${data.message}</h5>
+                        <p class="mb-0">
+                            <a href="{% url 'reports:test_connection' %}" class="btn btn-sm btn-info mt-2">
+                                <i class="fas fa-wrench"></i> Dépanner
+                            </a>
+                        </p>
+                    </div>
+                `);
+            }
+
+            // Réinitialiser le bouton
+            $('#checkOllama').html('Vérifier la connexion');
+            $('#checkOllama').prop('disabled', false);
+        }).fail(function() {
+            $('#ollamaStatus').html(`
+                <div class="alert alert-danger">
+                    <h5><i class="fas fa-times-circle"></i> Erreur réseau</h5>
+                    <p class="mb-0">Impossible de contacter le serveur.</p>
+                </div>
+            `);
+            $('#checkOllama').html('Vérifier la connexion');
+            $('#checkOllama').prop('disabled', false);
+        });
+    });
+});
+</script>
+{% endblock %}
